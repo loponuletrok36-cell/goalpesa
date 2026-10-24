@@ -1,409 +1,1587 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#080d18">
-  <title>GoalPesa | Crash Games</title>
-  <meta name="description" content="GoalPesa — an original crash-game arcade with virtual-credit practice mode.">
-  <style>
-    :root {
-      --bg: #080d18;
-      --panel: #101827;
-      --panel2: #151f31;
-      --line: #26344a;
-      --text: #f5f7ff;
-      --muted: #92a0b8;
-      --green: #35e69a;
-      --blue: #65a8ff;
-      --red: #ff5575;
-      --gold: #ffc857;
-    }
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      background:
-        radial-gradient(ellipse at 50% -20%, #193357 0, transparent 55%),
-        var(--bg);
-      color: var(--text);
-      font-family: Inter, system-ui, -apple-system, Arial, sans-serif;
-      min-height: 100vh;
-    }
-    button, input { font: inherit; }
-    button { cursor: pointer; }
-    button:focus-visible, input:focus-visible {
-      outline: 2px solid var(--green);
-      outline-offset: 3px;
-    }
-    .topbar {
-      display: flex; align-items: center; justify-content: space-between;
-      gap: 12px; padding: 16px max(16px, calc((100vw - 1180px)/2));
-      border-bottom: 1px solid var(--line);
-      background: rgba(8,13,24,.88);
-      position: sticky; top: 0; z-index: 10; backdrop-filter: blur(14px);
-    }
-    .brand { display: flex; align-items: center; gap: 10px; font-weight: 900; font-size: 21px; letter-spacing: -.7px; }
-    .logo {
-      width: 38px; height: 38px; display: grid; place-items: center;
-      background: linear-gradient(145deg, var(--green), #16a977);
-      border-radius: 12px; color: #062117; font-size: 21px;
-      box-shadow: 0 0 24px #35e69a22;
-    }
-    .brand span { color: var(--green); }
-    .balance {
-      border: 1px solid #2b6653; background: #10251f; border-radius: 12px;
-      padding: 9px 12px; font-size: 13px; color: var(--muted);
-    }
-    .balance strong { color: var(--green); font-size: 15px; margin-left: 5px; }
-    main { width: min(1180px, 100%); margin: auto; padding: 24px 16px 44px; }
-    .notice {
-      display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
-      padding: 12px 14px; border: 1px solid #594b29;
-      background: #211c12; border-radius: 12px; color: #f4d99a;
-      font-size: 12px; margin-bottom: 25px;
-    }
-    .notice b { color: var(--gold); }
-    .hero { margin-bottom: 23px; }
-    .eyebrow { color: var(--green); text-transform: uppercase; letter-spacing: 2px; font-size: 11px; font-weight: 800; }
-    h1 { font-size: clamp(29px, 5vw, 47px); line-height: 1.08; margin: 10px 0; letter-spacing: -1.5px; }
-    h1 span { color: var(--green); }
-    .subtitle { color: var(--muted); line-height: 1.65; max-width: 650px; margin: 0; font-size: 14px; }
-    .section-head { display: flex; align-items: end; justify-content: space-between; gap: 12px; margin: 26px 0 14px; }
-    h2 { font-size: 18px; margin: 0; }
-    .small { color: var(--muted); font-size: 12px; }
-    .games { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; }
-    .game-card {
-      position: relative; overflow: hidden; min-height: 126px; text-align: left;
-      color: var(--text); border: 1px solid var(--line); border-radius: 16px;
-      background: linear-gradient(145deg, var(--panel2), var(--panel));
-      padding: 15px; transition: transform .18s, border-color .18s;
-    }
-    .game-card:hover { transform: translateY(-3px); border-color: var(--accent, var(--green)); }
-    .game-card.active { border-color: var(--accent, var(--green)); box-shadow: inset 0 0 0 1px var(--accent, var(--green)); }
-    .game-icon { font-size: 29px; margin-bottom: 14px; display: block; }
-    .game-name { display: block; font-weight: 800; font-size: 13px; }
-    .game-type { display: block; margin-top: 5px; color: var(--muted); font-size: 11px; }
-    .play-layout { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(270px, .8fr); gap: 15px; margin-top: 15px; }
-    .panel { background: linear-gradient(145deg, #121c2d, #0e1624); border: 1px solid var(--line); border-radius: 18px; overflow: hidden; }
-    .panel-head { padding: 15px 17px; display: flex; align-items: center; justify-content: space-between; gap: 10px; border-bottom: 1px solid var(--line); }
-    .game-title { font-weight: 800; }
-    .pill { font-size: 10px; border-radius: 99px; padding: 6px 9px; color: var(--green); background: #15372c; border: 1px solid #285742; white-space: nowrap; }
-    .arena {
-      min-height: 320px; height: clamp(320px, 37vw, 410px); position: relative; overflow: hidden;
-      background: radial-gradient(ellipse at 50% 100%, #143653 0, #0d1b30 42%, #0a1221 78%);
-    }
-    .arena:before {
-      content: ""; position: absolute; inset: 0;
-      background-image: linear-gradient(#233a562a 1px, transparent 1px), linear-gradient(90deg, #233a562a 1px, transparent 1px);
-      background-size: 32px 32px; transform: perspective(240px) rotateX(16deg) scale(1.4); transform-origin: bottom;
-      mask-image: linear-gradient(transparent, black);
-    }
-    .stars { position: absolute; inset: 0; pointer-events: none;
-      background-image: radial-gradient(circle at 12% 18%, #fff 1px, transparent 1.5px), radial-gradient(circle at 78% 26%, #7cb8ff 1px, transparent 1.5px), radial-gradient(circle at 58% 13%, #fff 1px, transparent 1.5px), radial-gradient(circle at 89% 68%, #fff 1px, transparent 1.5px), radial-gradient(circle at 29% 48%, #7cb8ff 1px, transparent 1.5px);
-    }
-    .status { position: absolute; top: 16px; left: 16px; color: var(--muted); font-size: 11px; letter-spacing: 1px; text-transform: uppercase; }
-    .multiplier { position: absolute; top: 42%; left: 50%; transform: translate(-50%,-50%); font-size: clamp(42px, 8vw, 70px); font-weight: 900; letter-spacing: -3px; text-shadow: 0 0 32px #65a8ff2c; }
-    .multiplier.live { color: var(--green); text-shadow: 0 0 30px #35e69a4a; }
-    .multiplier.crashed { color: var(--red); text-shadow: 0 0 30px #ff557544; }
-    .plane { position: absolute; top: 56%; left: 18%; font-size: 34px; filter: drop-shadow(0 0 15px #65a8ff80); transition: left .2s, top .2s; }
-    .flight-line { position: absolute; width: 0; height: 3px; left: 18%; top: 60%; transform-origin: left; transform: rotate(-27deg); background: linear-gradient(90deg, transparent, var(--green)); box-shadow: 0 0 14px #35e69a; border-radius: 100%; }
-    .arena-bottom { position: absolute; bottom: 15px; left: 15px; right: 15px; display: flex; justify-content: space-between; gap: 10px; font-size: 11px; color: var(--muted); }
-    .controls { padding: 16px; }
-    .field-label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 8px; }
-    .input-wrap { display: flex; align-items: center; border: 1px solid var(--line); background: #080f1b; border-radius: 11px; overflow: hidden; }
-    .input-wrap input { color: white; min-width: 0; width: 100%; padding: 12px; background: transparent; border: 0; outline: none; }
-    .input-suffix { padding: 0 12px; color: var(--muted); font-size: 12px; }
-    .quick { display: flex; gap: 7px; margin: 9px 0 15px; }
-    .quick button { flex: 1; background: #1b273a; border: 1px solid var(--line); color: #d5deef; border-radius: 8px; padding: 7px 0; font-size: 11px; }
-    .primary, .secondary { width: 100%; border: 0; border-radius: 11px; padding: 13px; font-weight: 900; }
-    .primary { background: var(--green); color: #052318; }
-    .primary:disabled { opacity: .45; cursor: not-allowed; }
-    .secondary { background: #20334a; color: #fff; margin-top: 9px; }
-    .result { min-height: 34px; margin: 10px 0 0; font-size: 12px; color: var(--muted); line-height: 1.5; }
-    .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; padding: 13px 16px; border-top: 1px solid var(--line); }
-    .stat { background: #0a1220; padding: 10px; border-radius: 10px; }
-    .stat span { display: block; font-size: 10px; color: var(--muted); margin-bottom: 5px; }
-    .stat strong { font-size: 15px; }
-    .history { display: flex; flex-wrap: wrap; gap: 7px; padding: 13px 16px 16px; }
-    .history-chip { font-size: 11px; border-radius: 8px; padding: 7px 9px; background: #193326; color: var(--green); }
-    .history-chip.low { background: #3b202a; color: #ff8298; }
-    .footer { text-align: center; color: #74829a; font-size: 11px; line-height: 1.7; margin-top: 28px; }
-    .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #18273a; color: white; border: 1px solid var(--line); padding: 12px 16px; border-radius: 12px; z-index: 30; box-shadow: 0 10px 30px #0006; font-size: 13px; display: none; max-width: 90vw; }
-    @media (max-width: 850px) { .games { grid-template-columns: repeat(3, minmax(0, 1fr)); } .play-layout { grid-template-columns: 1fr; } .arena { height: 340px; } }
-    @media (max-width: 480px) { .topbar { padding: 12px; } .brand { font-size: 18px; } .balance { padding: 8px; font-size: 11px; } .balance strong { font-size: 13px; } main { padding: 18px 12px 32px; } .games { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; } .game-card { min-height: 112px; padding: 12px; } .game-icon { font-size: 25px; margin-bottom: 10px; } .arena { min-height: 290px; height: 290px; } }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#101827">
+
+<title>LifePocket KE | Smart Life Dashboard</title>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+:root {
+  --bg: #0b1120;
+  --panel: #151f32;
+  --panel2: #101827;
+  --text: #f4f7ff;
+  --muted: #9baac2;
+  --accent: #56e0b5;
+  --border: #28364c;
+  --danger: #ff7185;
+  --blue: #78a9ff;
+  --shadow: 0 12px 30px rgba(0,0,0,.15);
+}
+
+body.light {
+  --bg: #f3f6fb;
+  --panel: #ffffff;
+  --panel2: #edf2f8;
+  --text: #172238;
+  --muted: #68758b;
+  --accent: #008f70;
+  --border: #dce4ef;
+  --danger: #dc3545;
+  --blue: #2869d8;
+  --shadow: 0 12px 30px rgba(20,40,80,.06);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: Arial, Helvetica, sans-serif;
+  transition: background .2s, color .2s;
+}
+
+button, input, select {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  border-radius: 9px;
+  padding: 11px 14px;
+  font-weight: 700;
+  background: var(--accent);
+  color: #092019;
+}
+
+button:hover {
+  opacity: .88;
+}
+
+button:focus-visible,
+input:focus-visible,
+select:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 2px;
+}
+
+.secondary {
+  background: var(--panel2);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+.danger {
+  background: var(--danger);
+  color: white;
+}
+
+header {
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+  padding: 17px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+.logo {
+  font-size: 23px;
+  font-weight: 900;
+}
+
+.logo span {
+  color: var(--accent);
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+main {
+  max-width: 1200px;
+  margin: auto;
+  padding: 25px 18px 50px;
+}
+
+.welcome {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 15px;
+  flex-wrap: wrap;
+  margin-bottom: 25px;
+}
+
+h1 {
+  margin: 0 0 8px;
+  font-size: clamp(25px, 4vw, 34px);
+}
+
+h2 {
+  font-size: 17px;
+  margin: 0 0 17px;
+}
+
+p {
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.small {
+  font-size: 12px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  padding: 19px;
+  border-radius: 16px;
+  min-width: 0;
+  box-shadow: var(--shadow);
+}
+
+.full {
+  grid-column: 1 / -1;
+}
+
+.half {
+  grid-column: span 2;
+}
+
+.stat-label {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.stat-value {
+  font-size: clamp(20px, 3vw, 28px);
+  font-weight: 800;
+  margin: 13px 0 8px;
+  overflow-wrap: anywhere;
+}
+
+.green {
+  color: var(--accent);
+}
+
+.red {
+  color: var(--danger);
+}
+
+.blue {
+  color: var(--blue);
+}
+
+.stat-icon {
+  font-size: 24px;
+  margin-bottom: 13px;
+}
+
+label {
+  display: block;
+  color: var(--muted);
+  font-size: 13px;
+  margin: 12px 0 6px;
+}
+
+input, select {
+  width: 100%;
+  background: var(--panel2);
+  color: var(--text);
+  border: 1px solid var(--border);
+  padding: 12px;
+  border-radius: 9px;
+  min-width: 0;
+}
+
+input::placeholder {
+  color: var(--muted);
+  opacity: .75;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px 12px;
+}
+
+.form-grid .wide {
+  grid-column: 1 / -1;
+}
+
+.form-actions {
+  display: flex;
+  gap: 9px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+}
+
+.form-actions button {
+  flex: 1;
+}
+
+.toolbar {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 15px;
+}
+
+.toolbar > * {
+  flex: 1;
+}
+
+.table-wrap {
+  width: 100%;
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 560px;
+}
+
+th, td {
+  text-align: left;
+  padding: 13px 10px;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+}
+
+th {
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.badge {
+  display: inline-block;
+  padding: 5px 9px;
+  border-radius: 30px;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.badge.income {
+  color: var(--accent);
+  background: rgba(86,224,181,.12);
+}
+
+.badge.expense {
+  color: var(--danger);
+  background: rgba(255,113,133,.12);
+}
+
+.delete-btn {
+  padding: 7px 9px;
+  background: var(--panel2);
+  border: 1px solid var(--border);
+  color: var(--danger);
+}
+
+.progress {
+  height: 9px;
+  border-radius: 10px;
+  background: var(--panel2);
+  overflow: hidden;
+  margin: 12px 0;
+}
+
+.progress-bar {
+  height: 100%;
+  width: 0%;
+  background: var(--accent);
+  transition: width .3s;
+}
+
+.budget-item {
+  padding: 13px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.budget-item:last-child {
+  border-bottom: 0;
+}
+
+.budget-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.task-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.task-item input {
+  width: auto;
+}
+
+.task-text {
+  flex: 1;
+  overflow-wrap: anywhere;
+}
+
+.task-item.done .task-text {
+  text-decoration: line-through;
+  color: var(--muted);
+}
+
+.empty {
+  text-align: center;
+  padding: 22px 10px;
+  color: var(--muted);
+}
+
+.chart-box {
+  position: relative;
+  height: 270px;
+}
+
+.result {
+  font-size: 23px;
+  font-weight: 800;
+  margin-top: 18px;
+  overflow-wrap: anywhere;
+}
+
+.notice {
+  padding: 13px;
+  border-radius: 10px;
+  background: var(--panel2);
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.5;
+  margin-top: 14px;
+}
+
+footer {
+  text-align: center;
+  padding: 25px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+@media (max-width: 850px) {
+  .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .half {
+    grid-column: span 2;
+  }
+}
+
+@media (max-width: 520px) {
+  header {
+    padding: 15px;
+  }
+
+  main {
+    padding: 20px 12px 35px;
+  }
+
+  .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .full, .half {
+    grid-column: auto;
+  }
+
+  .card {
+    padding: 16px;
+  }
+
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .form-grid .wide {
+    grid-column: auto;
+  }
+
+  .header-actions button {
+    padding: 9px;
+    font-size: 12px;
+  }
+}
+</style>
 </head>
+
 <body>
-  <header class="topbar">
-    <div class="brand"><div class="logo">G</div>Goal<span>Pesa</span></div>
-    <div class="balance">PRACTICE CREDITS <strong id="balance">KSh 1,000</strong></div>
-  </header>
 
-  <main>
-    <div class="notice"><b>ⓘ PRACTICE MODE</b> Virtual credits only. No deposits, withdrawals or real-money betting.</div>
+<header>
+  <div class="logo">LifePocket <span>KE.</span></div>
 
-    <section class="hero">
-      <div class="eyebrow">Your arcade. Your strategy.</div>
-      <h1>Ready for <span>takeoff?</span></h1>
-      <p class="subtitle">Explore original crash-game concepts, test your timing and practise your strategy with virtual credits. Choose a game to enter the arcade.</p>
+  <div class="header-actions">
+    <button class="secondary" id="themeBtn" type="button">
+      ☀️ Light mode
+    </button>
+    <button class="secondary" id="exportBtn" type="button">
+      Export data
+    </button>
+  </div>
+</header>
+
+<main>
+
+  <section class="welcome">
+    <div>
+      <h1>Welcome to LifePocket 👋</h1>
+      <p>Manage your money, plan your day, and build better habits.</p>
+    </div>
+
+    <div>
+      <div class="muted small" id="today"></div>
+      <p class="green" style="margin-bottom:0">
+        Your personal productivity dashboard
+      </p>
+    </div>
+  </section>
+
+  <!-- FINANCIAL SUMMARY -->
+
+  <div class="grid">
+
+    <section class="card">
+      <div class="stat-icon">💰</div>
+      <div class="stat-label">Total income</div>
+      <div class="stat-value green" id="incomeTotal">KSh 0.00</div>
+      <div class="small muted">All recorded income</div>
     </section>
 
-    <div class="section-head">
-      <h2>Explore games</h2>
-      <span class="small">10 experiences · Practice</span>
-    </div>
-    <section class="games" id="games" aria-label="Choose a practice game"></section>
+    <section class="card">
+      <div class="stat-icon">💸</div>
+      <div class="stat-label">Total expenses</div>
+      <div class="stat-value red" id="expenseTotal">KSh 0.00</div>
+      <div class="small muted">All recorded expenses</div>
+    </section>
 
-    <section class="play-layout" id="play">
-      <div class="panel">
-        <div class="panel-head">
-          <span class="game-title" id="arenaTitle">✈️ SkyPilot</span>
-          <span class="pill">VIRTUAL PLAY</span>
+    <section class="card">
+      <div class="stat-icon">🏦</div>
+      <div class="stat-label">Current balance</div>
+      <div class="stat-value blue" id="balanceTotal">KSh 0.00</div>
+      <div class="small muted">Income minus expenses</div>
+    </section>
+
+    <section class="card">
+      <div class="stat-icon">🎯</div>
+      <div class="stat-label">Savings rate</div>
+      <div class="stat-value green" id="savingsRate">0%</div>
+      <div class="small muted">Based on total income</div>
+    </section>
+
+    <!-- ADD TRANSACTION -->
+
+    <section class="card half">
+      <h2>➕ Add transaction</h2>
+
+      <form id="transactionForm">
+        <div class="form-grid">
+
+          <div>
+            <label for="txType">Transaction type</label>
+            <select id="txType" required>
+              <option value="expense">Expense</option>
+              <option value="income">Income</option>
+            </select>
+          </div>
+
+          <div>
+            <label for="txAmount">Amount (KSh)</label>
+            <input id="txAmount" type="number" min="0.01"
+              step="0.01" placeholder="e.g. 500" required>
+          </div>
+
+          <div>
+            <label for="txCategory">Category</label>
+            <select id="txCategory" required>
+              <option>Food</option>
+              <option>Transport</option>
+              <option>Education</option>
+              <option>Shopping</option>
+              <option>Bills</option>
+              <option>Entertainment</option>
+              <option>Salary</option>
+              <option>Business</option>
+              <option>Savings</option>
+              <option>Other</option>
+            </select>
+          </div>
+
+          <div>
+            <label for="txDate">Date</label>
+            <input id="txDate" type="date" required>
+          </div>
+
+          <div class="wide">
+            <label for="txNote">Description</label>
+            <input id="txNote" maxlength="120"
+              placeholder="e.g. Lunch or school supplies">
+          </div>
+
         </div>
-        <div class="arena" id="arena">
-          <div class="stars"></div>
-          <div class="status" id="status">READY WHEN YOU ARE</div>
-          <div class="multiplier" id="multiplier">1.00×</div>
-          <div class="flight-line" id="flightLine"></div>
-          <div class="plane" id="plane">✈️</div>
-          <div class="arena-bottom"><span>GOALPESA ARCADE</span><span>Virtual credits only</span></div>
+
+        <div class="form-actions">
+          <button type="submit">Save transaction</button>
+          <button type="reset" class="secondary">Clear form</button>
         </div>
-        <div class="stats">
-          <div class="stat"><span>LAST RESULT</span><strong id="lastResult">—</strong></div>
-          <div class="stat"><span>ROUNDS PLAYED</span><strong id="rounds">0</strong></div>
-          <div class="stat"><span>NET PRACTICE P/L</span><strong id="net">KSh 0</strong></div>
-        </div>
-        <div class="section-head" style="padding:0 16px;margin:17px 0 0"><h2>Recent results</h2><span class="small">This session</span></div>
-        <div class="history" id="history"><span class="small">Your results will appear here.</span></div>
+      </form>
+    </section>
+
+    <!-- MONTHLY REPORT -->
+
+    <section class="card half">
+      <h2>📅 Monthly overview</h2>
+
+      <label for="reportMonth">Choose month</label>
+      <input type="month" id="reportMonth">
+
+      <div style="margin-top:20px">
+        <div class="stat-label">Monthly income</div>
+        <div class="stat-value green" id="monthIncome">KSh 0.00</div>
       </div>
 
-      <aside class="panel">
-        <div class="panel-head"><span class="game-title">Practice controls</span><span class="pill">DEMO</span></div>
-        <div class="controls">
-          <label class="field-label" for="bet">Virtual stake</label>
-          <div class="input-wrap"><input id="bet" type="number" min="10" step="10" value="50" inputmode="numeric"><span class="input-suffix">KSh</span></div>
-          <div class="quick">
-            <button type="button" data-stake="10">10</button>
-            <button type="button" data-stake="50">50</button>
-            <button type="button" data-stake="100">100</button>
-            <button type="button" data-stake="250">250</button>
-          </div>
-          <button class="primary" id="start">▶ Start practice round</button>
-          <button class="secondary" id="cashout" disabled>Collect virtual winnings</button>
-          <p class="result" id="result" aria-live="polite">Choose a stake and start a practice round. Results are simulated, not predictions.</p>
-        </div>
-        <div class="stats">
-          <div class="stat"><span>VIRTUAL STAKE</span><strong id="currentStake">KSh 0</strong></div>
-          <div class="stat"><span>LIVE MULTIPLIER</span><strong id="currentMult">1.00×</strong></div>
-          <div class="stat"><span>POSSIBLE RETURN</span><strong id="potential">KSh 0</strong></div>
-        </div>
-      </aside>
+      <div style="margin-top:20px">
+        <div class="stat-label">Monthly expenses</div>
+        <div class="stat-value red" id="monthExpense">KSh 0.00</div>
+      </div>
+
+      <div style="margin-top:20px">
+        <div class="stat-label">Monthly net balance</div>
+        <div class="stat-value blue" id="monthNet">KSh 0.00</div>
+      </div>
     </section>
 
-    <div class="footer">
-      GoalPesa · Independent practice arcade concept<br>
-      Virtual credits have no cash value and cannot be purchased, transferred or redeemed.<br>
-      Games use simulated outcomes for practice and entertainment. No real-money gambling is enabled.
-    </div>
-  </main>
-  <div class="toast" id="toast" role="status"></div>
+    <!-- CHARTS -->
 
-  <script>
-    const gameList = [
-      {name:"SkyPilot", type:"Plane flight", icon:"✈️", color:"#35e69a"},
-      {name:"SkyRush", type:"Rocket launch", icon:"🚀", color:"#65a8ff"},
-      {name:"RocketX", type:"Space mission", icon:"🛰️", color:"#c18aff"},
-      {name:"SpaceFly", type:"Cosmic journey", icon:"🌌", color:"#6bd8ff"},
-      {name:"BalloonPop", type:"Balloon ascent", icon:"🎈", color:"#ff91bd"},
-      {name:"OceanRush", type:"Ocean adventure", icon:"🌊", color:"#41c9e8"},
-      {name:"TurboDrive", type:"Speed racer", icon:"🏎️", color:"#ffc857"},
-      {name:"DragonFlight", type:"Dragon adventure", icon:"🐉", color:"#ff806e"},
-      {name:"NeonRide", type:"Neon racer", icon:"🏍️", color:"#ed77ff"},
-      {name:"OrbitX", type:"Orbital flight", icon:"🪐", color:"#a9b8ff"}
+    <section class="card half">
+      <h2>📊 Income vs expenses</h2>
+      <div class="chart-box">
+        <canvas id="financeChart"
+          aria-label="Income compared with expenses"
+          role="img"></canvas>
+      </div>
+      <p class="small">Shows your recorded income and expenses.</p>
+    </section>
+
+    <section class="card half">
+      <h2>🧾 Spending categories</h2>
+      <div class="chart-box">
+        <canvas id="categoryChart"
+          aria-label="Spending by category"
+          role="img"></canvas>
+      </div>
+      <p class="small">See where your money goes.</p>
+    </section>
+
+    <!-- BUDGET -->
+
+    <section class="card half">
+      <h2>🎯 Monthly budget</h2>
+
+      <form id="budgetForm">
+        <label for="budgetCategory">Budget category</label>
+        <select id="budgetCategory" required>
+          <option>Food</option>
+          <option>Transport</option>
+          <option>Education</option>
+          <option>Shopping</option>
+          <option>Bills</option>
+          <option>Entertainment</option>
+          <option>Other</option>
+        </select>
+
+        <label for="budgetAmount">Monthly limit (KSh)</label>
+        <input id="budgetAmount" type="number" min="0.01"
+          step="0.01" placeholder="e.g. 5000" required>
+
+        <button type="submit">Set budget</button>
+      </form>
+
+      <div id="budgetList" style="margin-top:18px"></div>
+    </section>
+
+    <!-- TASKS -->
+
+    <section class="card half">
+      <h2>✅ Daily tasks</h2>
+
+      <form id="taskForm">
+        <label for="taskInput">Task description</label>
+        <input id="taskInput" maxlength="160"
+          placeholder="e.g. Revise mathematics" required>
+
+        <label for="taskDue">Due date (optional)</label>
+        <input id="taskDue" type="date">
+
+        <button type="submit">Add task</button>
+      </form>
+
+      <div id="taskSummary" class="notice">
+        No tasks added yet.
+      </div>
+
+      <div id="taskList"></div>
+    </section>
+
+    <!-- TRANSACTION HISTORY -->
+
+    <section class="card full">
+      <h2>📜 Transaction history</h2>
+
+      <div class="toolbar">
+        <input id="searchTransactions"
+          placeholder="Search descriptions or categories"
+          aria-label="Search transactions">
+
+        <select id="filterType" aria-label="Filter by transaction type">
+          <option value="all">All transactions</option>
+          <option value="income">Income only</option>
+          <option value="expense">Expenses only</option>
+        </select>
+
+        <button id="clearTransactions" class="danger" type="button">
+          Delete all
+        </button>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Description</th>
+              <th>Category</th>
+              <th>Type</th>
+              <th>Amount</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+
+          <tbody id="transactionList"></tbody>
+        </table>
+      </div>
+
+      <div id="emptyTransactions" class="empty">
+        No transactions yet. Add your first transaction above.
+      </div>
+    </section>
+
+    <!-- CALCULATOR -->
+
+    <section class="card full">
+      <h2>🧮 Smart calculator</h2>
+
+      <div class="form-grid">
+        <div>
+          <label for="calcA">First number</label>
+          <input id="calcA" type="number" step="any"
+            placeholder="Enter a number">
+        </div>
+
+        <div>
+          <label for="calcB">Second number</label>
+          <input id="calcB" type="number" step="any"
+            placeholder="Enter another number">
+        </div>
+
+        <div class="wide">
+          <label for="calcOperation">Operation</label>
+          <select id="calcOperation">
+            <option value="add">Addition (+)</option>
+            <option value="subtract">Subtraction (−)</option>
+            <option value="multiply">Multiplication (×)</option>
+            <option value="divide">Division (÷)</option>
+            <option value="percent">Second number as % of first</option>
+          </select>
+        </div>
+      </div>
+
+      <button id="calculateBtn" type="button">Calculate</button>
+
+      <div class="result green" id="calcResult" aria-live="polite">
+        Result: —
+      </div>
+    </section>
+
+    <!-- DATA MANAGEMENT -->
+
+    <section class="card full">
+      <h2>⚙️ Data and privacy</h2>
+
+      <p>
+        Your data is saved in this browser on this device.
+        It is not automatically synchronized across devices.
+      </p>
+
+      <div class="form-actions">
+        <button id="exportBtn2" type="button">Download backup</button>
+
+        <button id="importBtn" type="button" class="secondary">
+          Import backup
+        </button>
+
+        <input id="importFile" type="file"
+          accept=".json,application/json" hidden>
+      </div>
+
+      <div class="notice">
+        This is a personal finance organizer, not a bank.
+        Do not enter passwords, PINs, or banking credentials.
+        Export important records regularly. Clearing browser data
+        may erase saved information.
+      </div>
+    </section>
+
+  </div>
+</main>
+
+<footer>
+  LifePocket KE © <span id="year"></span>
+  · Organize your life, one day at a time.
+</footer>
+
+<script>
+"use strict";
+
+const $ = id => document.getElementById(id);
+
+const STORAGE_KEY = "lifepocket-ke-advanced-v2";
+const THEME_KEY = "lifepocket-ke-theme-v1";
+
+const today = new Date();
+const todayString = [
+  today.getFullYear(),
+  String(today.getMonth() + 1).padStart(2, "0"),
+  String(today.getDate()).padStart(2, "0")
+].join("-");
+
+$("today").textContent = today.toLocaleDateString("en-KE", {
+  weekday: "long",
+  year: "numeric",
+  month: "long",
+  day: "numeric"
+});
+
+$("year").textContent = today.getFullYear();
+$("txDate").value = todayString;
+
+$("reportMonth").value =
+  todayString.slice(0, 7);
+
+/*
+  Application data.
+  Local storage is convenient for a prototype, but it is not
+  a secure server-side database.
+*/
+
+let data = {
+  transactions: [],
+  budgets: {},
+  tasks: []
+};
+
+function validDate(value) {
+  return typeof value === "string" &&
+    /^\d{4}-\d{2}-\d{2}$/.test(value) &&
+    !Number.isNaN(Date.parse(value + "T00:00:00"));
+}
+
+function cleanImportedData(raw) {
+  if (!raw || typeof raw !== "object" ||
+      !Array.isArray(raw.transactions) ||
+      !Array.isArray(raw.tasks) ||
+      !raw.budgets ||
+      typeof raw.budgets !== "object" ||
+      Array.isArray(raw.budgets)) {
+    throw new Error("Invalid backup format.");
+  }
+
+  const allowedCategories = [
+    "Food", "Transport", "Education", "Shopping",
+    "Bills", "Entertainment", "Salary",
+    "Business", "Savings", "Other"
+  ];
+
+  const transactions = raw.transactions.map(t => {
+    if (!t || !["income", "expense"].includes(t.type) ||
+        typeof t.amount !== "number" ||
+        !Number.isFinite(t.amount) ||
+        t.amount <= 0 ||
+        t.amount > 1e12 ||
+        !validDate(t.date) ||
+        typeof t.category !== "string" ||
+        !allowedCategories.includes(t.category)) {
+      throw new Error("A transaction in the backup is invalid.");
+    }
+
+    return {
+      id: String(t.id || crypto.randomUUID()),
+      type: t.type,
+      amount: t.amount,
+      category: t.category,
+      date: t.date,
+      note: String(t.note || "").slice(0, 120)
+    };
+  });
+
+  const tasks = raw.tasks.map(t => {
+    if (!t || typeof t.text !== "string") {
+      throw new Error("A task in the backup is invalid.");
+    }
+
+    return {
+      id: String(t.id || crypto.randomUUID()),
+      text: t.text.slice(0, 160),
+      due: validDate(t.due) ? t.due : "",
+      done: t.done === true
+    };
+  });
+
+  const budgets = {};
+
+  for (const [category, amount] of Object.entries(raw.budgets)) {
+    if (!allowedCategories.includes(category) ||
+        typeof amount !== "number" ||
+        !Number.isFinite(amount) ||
+        amount <= 0 ||
+        amount > 1e12) {
+      throw new Error("A budget in the backup is invalid.");
+    }
+
+    budgets[category] = amount;
+  }
+
+  return { transactions, budgets, tasks };
+}
+
+function loadData() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+
+    if (raw) {
+      data = cleanImportedData(JSON.parse(raw));
+    }
+  } catch (error) {
+    console.warn("Could not load saved data:", error);
+    alert(
+      "Some saved data could not be loaded. " +
+      "Your browser storage may contain an older or invalid format."
+    );
+  }
+}
+
+function saveData() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    renderAll();
+  } catch (error) {
+    alert(
+      "Saving failed. Your browser storage may be full. " +
+      "Export a backup if possible."
+    );
+  }
+}
+
+function money(amount) {
+  return "KSh " + amount.toLocaleString("en-KE", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
+}
+
+function sum(items) {
+  return items.reduce((total, item) => total + item.amount, 0);
+}
+
+function getTotals(items) {
+  const income = sum(items.filter(t => t.type === "income"));
+  const expenses = sum(items.filter(t => t.type === "expense"));
+
+  return {
+    income,
+    expenses,
+    balance: income - expenses
+  };
+}
+
+function monthlyTransactions() {
+  const month = $("reportMonth").value;
+
+  return data.transactions.filter(t =>
+    t.date.slice(0, 7) === month
+  );
+}
+
+function renderSummary() {
+  const totals = getTotals(data.transactions);
+
+  $("incomeTotal").textContent = money(totals.income);
+  $("expenseTotal").textContent = money(totals.expenses);
+  $("balanceTotal").textContent = money(totals.balance);
+
+  const rate = totals.income > 0
+    ? ((totals.income - totals.expenses) / totals.income) * 100
+    : 0;
+
+  $("savingsRate").textContent =
+    rate.toLocaleString("en-KE", {
+      maximumFractionDigits: 1
+    }) + "%";
+
+  $("balanceTotal").className =
+    "stat-value " + (totals.balance < 0 ? "red" : "blue");
+
+  const monthTotals = getTotals(monthlyTransactions());
+
+  $("monthIncome").textContent = money(monthTotals.income);
+  $("monthExpense").textContent = money(monthTotals.expenses);
+  $("monthNet").textContent = money(monthTotals.balance);
+}
+
+function renderTransactions() {
+  const tbody = $("transactionList");
+  tbody.replaceChildren();
+
+  const query = $("searchTransactions").value
+    .trim().toLowerCase();
+
+  const filter = $("filterType").value;
+
+  const filtered = [...data.transactions]
+    .filter(t => {
+      const matchesQuery =
+        t.note.toLowerCase().includes(query) ||
+        t.category.toLowerCase().includes(query);
+
+      const matchesType =
+        filter === "all" || t.type === filter;
+
+      return matchesQuery && matchesType;
+    })
+    .sort((a, b) =>
+      b.date.localeCompare(a.date) ||
+      b.id.localeCompare(a.id)
+    );
+
+  $("emptyTransactions").style.display =
+    filtered.length ? "none" : "block";
+
+  for (const t of filtered) {
+    const tr = document.createElement("tr");
+
+    const values = [
+      t.date,
+      t.note || "—",
+      t.category
     ];
 
-    const $ = id => document.getElementById(id);
-    let balance = 1000, net = 0, rounds = 0, currentGame = 0;
-    let playing = false, collected = false, stake = 0, multiplier = 1;
-    let crashAt = 1.85, startedAt = 0, frame = null, history = [];
-    let toastTimer;
+    for (const value of values) {
+      const td = document.createElement("td");
+      td.textContent = value;
+      tr.appendChild(td);
+    }
 
-    const money = n => "KSh " + Math.round(n).toLocaleString("en-KE");
-    function toast(message) {
-      $("toast").textContent = message;
-      $("toast").style.display = "block";
-      clearTimeout(toastTimer);
-      toastTimer = setTimeout(() => $("toast").style.display = "none", 2600);
-    }
-    function updateBalance() { $("balance").textContent = money(balance); }
-    function selectGame(index) {
-      currentGame = index;
-      const game = gameList[index];
-      $("arenaTitle").textContent = game.icon + " " + game.name;
-      $("arenaTitle").style.color = game.color;
-      document.querySelectorAll(".game-card").forEach((el, i) => {
-        el.classList.toggle("active", i === index);
-      });
-      $("multiplier").style.color = "";
-      $("result").textContent = game.name + " selected. Start a virtual-credit practice round.";
-      if (!playing) resetArena();
-      if (window.innerWidth < 850) $("play").scrollIntoView({behavior:"smooth", block:"start"});
-    }
-    function renderGames() {
-      $("games").innerHTML = "";
-      gameList.forEach((game, index) => {
-        const button = document.createElement("button");
-        button.type = "button";
-        button.className = "game-card" + (index === 0 ? " active" : "");
-        button.style.setProperty("--accent", game.color);
-        button.innerHTML = `<span class="game-icon">${game.icon}</span><span class="game-name">${game.name}</span><span class="game-type">${game.type}</span>`;
-        button.addEventListener("click", () => selectGame(index));
-        $("games").appendChild(button);
-      });
-    }
-    function resetArena() {
-      $("status").textContent = "READY WHEN YOU ARE";
-      $("multiplier").textContent = "1.00×";
-      $("multiplier").className = "multiplier";
-      $("plane").textContent = gameList[currentGame].icon;
-      $("plane").style.left = "18%";
-      $("plane").style.top = "56%";
-      $("flightLine").style.width = "0";
-      $("flightLine").style.opacity = "0";
-      $("currentMult").textContent = "1.00×";
-      $("potential").textContent = money(0);
-    }
-    function setControls() {
-      $("start").disabled = playing;
-      $("cashout").disabled = !playing || collected;
-      $("bet").disabled = playing;
-      $("currentStake").textContent = money(stake);
-      $("currentMult").textContent = multiplier.toFixed(2) + "×";
-      $("potential").textContent = money(stake * multiplier);
-    }
-    function startRound() {
-      if (playing) return;
-      const requested = Number($("bet").value);
-      if (!Number.isFinite(requested) || requested < 10 || !Number.isInteger(requested)) {
-        $("result").textContent = "Enter a whole-number virtual stake of at least KSh 10.";
-        return;
+    const typeTd = document.createElement("td");
+    const badge = document.createElement("span");
+
+    badge.className = "badge " + t.type;
+    badge.textContent =
+      t.type === "income" ? "Income" : "Expense";
+
+    typeTd.appendChild(badge);
+    tr.appendChild(typeTd);
+
+    const amountTd = document.createElement("td");
+
+    amountTd.textContent =
+      (t.type === "income" ? "+" : "−") + money(t.amount);
+
+    amountTd.className =
+      t.type === "income" ? "green" : "red";
+
+    tr.appendChild(amountTd);
+
+    const actionTd = document.createElement("td");
+    const del = document.createElement("button");
+
+    del.type = "button";
+    del.className = "delete-btn";
+    del.textContent = "Delete";
+    del.setAttribute("aria-label", "Delete transaction");
+
+    del.addEventListener("click", () => {
+      if (confirm("Delete this transaction?")) {
+        data.transactions =
+          data.transactions.filter(x => x.id !== t.id);
+
+        saveData();
       }
-      if (requested > balance) {
-        $("result").textContent = "Not enough virtual credits. Reset your practice balance to continue.";
-        return;
-      }
-      stake = requested;
-      balance -= stake;
-      net -= stake;
-      rounds++;
-      multiplier = 1;
-      collected = false;
-      playing = true;
-      // Simulated outcome only. This is not connected to a server or real betting.
-      const r = Math.random();
-      crashAt = r < .12 ? 1.05 + Math.random() * .35 : Math.min(12, 1 / Math.max(.06, Math.random() ** 2));
-      crashAt = Math.max(1.01, crashAt);
-      startedAt = performance.now();
-      $("status").textContent = "IN FLIGHT · PRACTICE ROUND";
-      $("result").textContent = "Round started. Collect before the simulated crash to record a virtual return.";
-      $("rounds").textContent = rounds;
-      $("net").textContent = money(net);
-      $("lastResult").textContent = "In progress";
-      $("lastResult").style.color = "";
-      $("flightLine").style.opacity = "1";
-      setControls();
-      frame = requestAnimationFrame(tick);
-    }
-    function tick(now) {
-      if (!playing) return;
-      const elapsed = (now - startedAt) / 1000;
-      multiplier = Math.exp(elapsed * .24);
-      const crashed = multiplier >= crashAt;
-      if (crashed) multiplier = crashAt;
-      $("multiplier").textContent = multiplier.toFixed(2) + "×";
-      $("currentMult").textContent = multiplier.toFixed(2) + "×";
-      $("potential").textContent = money(stake * multiplier);
-      $("multiplier").className = "multiplier" + (crashed ? " crashed" : " live");
-      $("plane").style.left = Math.min(83, 18 + elapsed * 7) + "%";
-      $("plane").style.top = Math.max(17, 56 - elapsed * 4.2) + "%";
-      $("flightLine").style.width = Math.min(66, elapsed * 8) + "%";
-      if (crashed) {
-        endRound();
-      } else {
-        frame = requestAnimationFrame(tick);
-      }
-    }
-    function endRound() {
-      playing = false;
-      cancelAnimationFrame(frame);
-      $("status").textContent = "SIMULATED CRASH";
-      $("multiplier").className = "multiplier crashed";
-      $("result").textContent = collected
-        ? "Your virtual collection was already recorded."
-        : "Crash at " + multiplier.toFixed(2) + "×. This practice stake was not collected.";
-      $("lastResult").textContent = multiplier.toFixed(2) + "×";
-      $("lastResult").style.color = "#ff8298";
-      history.unshift({mult: multiplier, win: false});
-      history = history.slice(0, 8);
-      renderHistory();
-      setControls();
-      $("start").disabled = false;
-      $("cashout").disabled = true;
-      $("bet").disabled = false;
-    }
-    function collectWinnings() {
-      if (!playing || collected) return;
-      collected = true;
-      const payout = Math.floor(stake * multiplier);
-      balance += payout;
-      net += payout;
-      $("result").textContent = "Collected " + money(payout) + " in virtual credits at " + multiplier.toFixed(2) + "×.";
-      $("lastResult").textContent = multiplier.toFixed(2) + "×";
-      $("lastResult").style.color = "#35e69a";
-      history.unshift({mult: multiplier, win: true});
-      history = history.slice(0, 8);
-      renderHistory();
-      updateBalance();
-      $("status").textContent = "VIRTUAL COLLECTION RECORDED";
-      $("cashout").disabled = true;
-      $("multiplier").className = "multiplier live";
-      playing = false;
-      cancelAnimationFrame(frame);
-      setControls();
-      $("start").disabled = false;
-      $("bet").disabled = false;
-      $("net").textContent = money(net);
-      toast("Virtual collection: " + money(payout));
-    }
-    function renderHistory() {
-      const container = $("history");
-      container.innerHTML = "";
-      if (!history.length) {
-        container.innerHTML = '<span class="small">Your results will appear here.</span>';
-        return;
-      }
-      history.forEach(item => {
-        const chip = document.createElement("span");
-        chip.className = "history-chip" + (item.win ? "" : " low");
-        chip.textContent = item.mult.toFixed(2) + "×";
-        container.appendChild(chip);
-      });
-    }
-    $("start").addEventListener("click", startRound);
-    $("cashout").addEventListener("click", collectWinnings);
-    document.querySelectorAll("[data-stake]").forEach(button => {
-      button.addEventListener("click", () => {
-        if (!playing) $("bet").value = button.dataset.stake;
-      });
     });
-    $("bet").addEventListener("input", () => {
-      const n = Number($("bet").value);
-      if (!playing && n >= 0) $("currentStake").textContent = money(n);
+
+    actionTd.appendChild(del);
+    tr.appendChild(actionTd);
+
+    tbody.appendChild(tr);
+  }
+}
+
+function renderBudgets() {
+  const container = $("budgetList");
+  container.replaceChildren();
+
+  const monthItems = monthlyTransactions();
+
+  const entries = Object.entries(data.budgets);
+
+  if (!entries.length) {
+    const p = document.createElement("p");
+    p.className = "empty";
+    p.textContent = "No budgets set yet.";
+    container.appendChild(p);
+    return;
+  }
+
+  for (const [category, limit] of entries) {
+    const spent = sum(monthItems.filter(t =>
+      t.type === "expense" && t.category === category
+    ));
+
+    const percent = Math.min((spent / limit) * 100, 100);
+
+    const item = document.createElement("div");
+    item.className = "budget-item";
+
+    const top = document.createElement("div");
+    top.className = "budget-top";
+
+    const title = document.createElement("strong");
+    title.textContent = category;
+
+    const value = document.createElement("span");
+    value.className = "small";
+    value.textContent = money(spent) + " / " + money(limit);
+
+    top.append(title, value);
+
+    const progress = document.createElement("div");
+    progress.className = "progress";
+
+    const bar = document.createElement("div");
+    bar.className = "progress-bar";
+    bar.style.width = percent + "%";
+
+    if (percent >= 100) {
+      bar.style.background = "var(--danger)";
+    }
+
+    progress.appendChild(bar);
+
+    const bottom = document.createElement("div");
+    bottom.className = "budget-top";
+
+    const remaining = document.createElement("span");
+    remaining.className = "small " +
+      (spent > limit ? "red" : "muted");
+
+    remaining.textContent = spent > limit
+      ? money(spent - limit) + " over budget"
+      : money(limit - spent) + " remaining";
+
+    const del = document.createElement("button");
+    del.type = "button";
+    del.className = "delete-btn";
+    del.textContent = "Remove";
+
+    del.addEventListener("click", () => {
+      if (confirm("Remove the " + category + " budget?")) {
+        delete data.budgets[category];
+        saveData();
+      }
     });
-    renderGames();
-    updateBalance();
-    setControls();
-  </script>
+
+    bottom.append(remaining, del);
+    item.append(top, progress, bottom);
+    container.appendChild(item);
+  }
+}
+
+function renderTasks() {
+  const list = $("taskList");
+  list.replaceChildren();
+
+  const doneCount = data.tasks.filter(t => t.done).length;
+
+  $("taskSummary").textContent =
+    data.tasks.length
+      ? doneCount + " of " + data.tasks.length + " tasks completed."
+      : "No tasks added yet.";
+
+  for (const task of data.tasks) {
+    const row = document.createElement("div");
+
+    row.className = "task-item" +
+      (task.done ? " done" : "");
+
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.checked = task.done;
+    checkbox.setAttribute("aria-label", "Mark task complete");
+
+    checkbox.addEventListener("change", () => {
+      task.done = checkbox.checked;
+      saveData();
+    });
+
+    const textWrap = document.createElement("div");
+    textWrap.className = "task-text";
+
+    const title = document.createElement("div");
+    title.textContent = task.text;
+
+    textWrap.appendChild(title);
+
+    if (task.due) {
+      const due = document.createElement("div");
+      due.className = "small muted";
+      due.textContent = "Due: " + task.due;
+      textWrap.appendChild(due);
+    }
+
+    const del = document.createElement("button");
+    del.type = "button";
+    del.className = "delete-btn";
+    del.textContent = "×";
+    del.setAttribute("aria-label", "Delete task");
+
+    del.addEventListener("click", () => {
+      data.tasks = data.tasks.filter(t => t.id !== task.id);
+      saveData();
+    });
+
+    row.append(checkbox, textWrap, del);
+    list.appendChild(row);
+  }
+}
+
+/* Charts */
+
+let financeChart = null;
+let categoryChart = null;
+
+function chartColors() {
+  const style = getComputedStyle(document.body);
+
+  return {
+    text: style.getPropertyValue("--text").trim(),
+    muted: style.getPropertyValue("--muted").trim(),
+    green: style.getPropertyValue("--accent").trim(),
+    red: style.getPropertyValue("--danger").trim(),
+    blue: style.getPropertyValue("--blue").trim(),
+    border: style.getPropertyValue("--border").trim()
+  };
+}
+
+function renderCharts() {
+  if (typeof Chart === "undefined") {
+    return;
+  }
+
+  const colors = chartColors();
+  const monthItems = monthlyTransactions();
+  const totals = getTotals(monthItems);
+
+  const financeCanvas = $("financeChart");
+  const categoryCanvas = $("categoryChart");
+
+  if (financeChart) financeChart.destroy();
+  if (categoryChart) categoryChart.destroy();
+
+  financeChart = new Chart(financeCanvas, {
+    type: "bar",
+    data: {
+      labels: ["Income", "Expenses"],
+      datasets: [{
+        label: "Amount (KSh)",
+        data: [totals.income, totals.expenses],
+        backgroundColor: [colors.green, colors.red],
+        borderRadius: 8
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false }
+      },
+      scales: {
+        x: {
+          ticks: { color: colors.text },
+          grid: { display: false }
+        },
+        y: {
+          beginAtZero: true,
+          ticks: { color: colors.muted },
+          grid: { color: colors.border }
+        }
+      }
+    }
+  });
+
+  const expenses = monthItems.filter(t => t.type === "expense");
+  const categories = {};
+
+  for (const t of expenses) {
+    categories[t.category] =
+      (categories[t.category] || 0) + t.amount;
+  }
+
+  const labels = Object.keys(categories);
+  const values = Object.values(categories);
+
+  categoryChart = new Chart(categoryCanvas, {
+    type: "doughnut",
+    data: {
+      labels: labels.length ? labels : ["No expenses"],
+      datasets: [{
+        data: labels.length ? values : [1],
+        backgroundColor: [
+          colors.green, colors.blue, "#e7b85b",
+          "#b48aff", "#ff8d70", "#65c9df",
+          "#ec80ba", "#9ca3af", "#80c997"
+        ],
+        borderColor: colors.border,
+        borderWidth: 2
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: "bottom",
+          labels: { color: colors.text }
+        }
+      }
+    }
+  });
+}
+
+function renderAll() {
+  renderSummary();
+  renderTransactions();
+  renderBudgets();
+  renderTasks();
+  renderCharts();
+}
+
+/* Transaction form */
+
+$("transactionForm").addEventListener("submit", event => {
+  event.preventDefault();
+
+  const amount = Number($("txAmount").value);
+  const type = $("txType").value;
+  const date = $("txDate").value;
+
+  if (!Number.isFinite(amount) ||
+      amount <= 0 ||
+      amount > 1e12 ||
+      !validDate(date)) {
+    alert("Enter a valid amount and date.");
+    return;
+  }
+
+  data.transactions.push({
+    id: crypto.randomUUID(),
+    type,
+    amount,
+    category: $("txCategory").value,
+    date,
+    note: $("txNote").value.trim().slice(0, 120)
+  });
+
+  $("transactionForm").reset();
+  $("txDate").value = todayString;
+
+  saveData();
+});
+
+/* Budget form */
+
+$("budgetForm").addEventListener("submit", event => {
+  event.preventDefault();
+
+  const category = $("budgetCategory").value;
+  const amount = Number($("budgetAmount").value);
+
+  if (!Number.isFinite(amount) ||
+      amount <= 0 ||
+      amount > 1e12) {
+    alert("Enter a valid budget amount.");
+    return;
+  }
+
+  data.budgets[category] = amount;
+
+  $("budgetForm").reset();
+  saveData();
+});
+
+/* Task form */
+
+$("taskForm").addEventListener("submit", event => {
+  event.preventDefault();
+
+  const text = $("taskInput").value.trim();
+  const due = $("taskDue").value;
+
+  if (!text) {
+    alert("Enter a task description.");
+    return;
+  }
+
+  if (due && !validDate(due)) {
+    alert("Enter a valid due date.");
+    return;
+  }
+
+  data.tasks.push({
+    id: crypto.randomUUID(),
+    text: text.slice(0, 160),
+    due,
+    done: false
+  });
+
+  $("taskForm").reset();
+  saveData();
+});
+
+/* Calculator */
+
+$("calculateBtn").addEventListener("click", () => {
+  const rawA = $("calcA").value;
+  const rawB = $("calcB").value;
+
+  if (rawA.trim() === "" || rawB.trim() === "") {
+    $("calcResult").textContent = "Enter both numbers.";
+    return;
+  }
+
+  const a = Number(rawA);
+  const b = Number(rawB);
+  const operation = $("calcOperation").value;
+
+  if (!Number.isFinite(a) || !Number.isFinite(b)) {
+    $("calcResult").textContent = "Enter valid numbers.";
+    return;
+  }
+
+  let result;
+
+  switch (operation) {
+    case "add":
+      result = a + b;
+      break;
+
+    case "subtract":
+      result = a - b;
+      break;
+
+    case "multiply":
+      result = a * b;
+      break;
+
+    case "divide":
+      if (b === 0) {
+        $("calcResult").textContent =
+          "Cannot divide by zero.";
+        return;
+      }
+      result = a / b;
+      break;
+
+    case "percent":
+      result = a === 0 ? null : (b / a) * 100;
+
+      if (result === null) {
+        $("calcResult").textContent =
+          "Cannot calculate a percentage of zero.";
+        return;
+      }
+      break;
+  }
+
+  if (!Number.isFinite(result)) {
+    $("calcResult").textContent =
+      "The result is outside the supported range.";
+    return;
+  }
+
+  $("calcResult").textContent =
+    "Result: " + result.toLocaleString("en-KE", {
+      maximumFractionDigits: 6
+    }) +
+    (operation === "percent" ? "%" : "");
+});
+
+/* Search and monthly reports */
+
+$("searchTransactions").addEventListener(
+  "input", renderTransactions
+);
+
+$("filterType").addEventListener(
+  "change", renderTransactions
+);
+
+$("reportMonth").addEventListener("change", () => {
+  renderSummary();
+  renderBudgets();
+  renderCharts();
+});
+
+/* Delete all transactions */
+
+$("clearTransactions").addEventListener("click", () => {
+  if (!data.transactions.length) {
+    alert("There are no transactions to delete.");
+    return;
+  }
+
+  if (confirm(
+    "Delete all transactions? Your budgets and tasks will remain."
+  )) {
+    data.transactions = [];
+    saveData();
+  }
+});
+
+/* Theme */
+
+function applyTheme(theme) {
+  document.body.classList.toggle("light", theme === "light");
+
+  $("themeBtn").textContent =
+    theme === "light" ? "🌙 Dark mode" : "☀️ Light mode";
+
+  try {
+    localStorage.setItem(THEME_KEY, theme);
+  } catch (error) {
+    // Theme still works for the current session.
+  }
+
+  if (data) renderCharts();
+}
+
+$("themeBtn").addEventListener("click", () => {
+  const next = document.body.classList.contains("light")
+    ? "dark"
+    : "light";
+
+  applyTheme(next);
+});
+
+/* Export and import */
+
+function exportData() {
+  const blob = new Blob(
+    [JSON.stringify(data, null, 2)],
+    { type: "application/json" }
+  );
+
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+
+  link.href = url;
+  link.download = "lifepocket-ke-backup.json";
+  link.click();
+
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+$("exportBtn").addEventListener("click", exportData);
+$("exportBtn2").addEventListener("click", exportData);
+
+$("importBtn").addEventListener("click", () => {
+  $("importFile").click();
+});
+
+$("importFile").addEventListener("change", async event => {
+  const file = event.target.files[0];
+
+  if (!file) return;
+
+  try {
+    if (file.size > 5 * 1024 * 1024) {
+      throw new Error("The backup file is too large.");
+    }
+
+    const parsed = JSON.parse(await file.text());
+    const imported = cleanImportedData(parsed);
+
+    if (!confirm(
+      "Import this backup? It will replace the data currently saved here."
+    )) {
+      return;
+    }
+
+    data = imported;
+    saveData();
+
+    alert("Backup imported successfully.");
+  } catch (error) {
+    alert("Could not import backup: " + error.message);
+  } finally {
+    event.target.value = "";
+  }
+});
+
+/* Start application */
+
+loadData();
+
+try {
+  const savedTheme = localStorage.getItem(THEME_KEY);
+  applyTheme(savedTheme === "light" ? "light" : "dark");
+} catch (error) {
+  applyTheme("dark");
+}
+
+renderAll();
+</script>
+
 </body>
 </html>
-
+t
